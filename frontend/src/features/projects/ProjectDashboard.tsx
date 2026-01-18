@@ -35,6 +35,14 @@ const CREATE_PROJECT = gql`
       project {
         id
         name
+        description
+        status
+        taskCount
+        completionPercentage
+        organization {
+          id
+          name
+        }
       }
     }
   }
@@ -69,6 +77,7 @@ export const ProjectDashboard: React.FC = () => {
     const [newProjectName, setNewProjectName] = useState('');
     const [selectedOrgId, setSelectedOrgId] = useState<string>('');
     const [editingProject, setEditingProject] = useState<Project | null>(null);
+    const [filterOrgId, setFilterOrgId] = useState<string>('');
 
     // Edit form state
     const [editName, setEditName] = useState('');
@@ -81,8 +90,11 @@ export const ProjectDashboard: React.FC = () => {
 
     // Pagination Logic
     const projectsList = data?.allProjects || [];
-    const totalPages = Math.ceil(projectsList.length / itemsPerPage);
-    const paginatedProjects = projectsList.slice(
+    const filteredProjects = filterOrgId
+        ? projectsList.filter((p: Project) => p.organization.id === filterOrgId)
+        : projectsList;
+    const totalPages = Math.ceil(filteredProjects.length / itemsPerPage);
+    const paginatedProjects = filteredProjects.slice(
         (currentPage - 1) * itemsPerPage,
         currentPage * itemsPerPage
     );
@@ -174,6 +186,23 @@ export const ProjectDashboard: React.FC = () => {
 
                     {/* Project List */}
                     <div className="lg:col-span-2 space-y-4">
+                        <div className="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                            <h2 className="font-semibold text-slate-800">Projects</h2>
+                            <select
+                                className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                value={filterOrgId}
+                                onChange={e => {
+                                    setFilterOrgId(e.target.value);
+                                    setCurrentPage(1);
+                                }}
+                            >
+                                <option value="">All Organizations</option>
+                                {organizations.map(org => (
+                                    <option key={org.id} value={org.id}>{org.name}</option>
+                                ))}
+                            </select>
+                        </div>
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {paginatedProjects.map((project: Project) => (
                                 <Link key={project.id} to={`/project/${project.id}`} className="block h-full group relative">

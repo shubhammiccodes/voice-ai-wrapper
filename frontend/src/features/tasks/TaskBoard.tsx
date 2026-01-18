@@ -32,12 +32,13 @@ const GET_PROJECT_DETAILS = gql`
 `;
 
 const CREATE_TASK = gql`
-  mutation CreateTask($title: String!, $projectId: ID!, $status: String) {
-    createTask(title: $title, projectId: $projectId, status: $status) {
+  mutation CreateTask($title: String!, $projectId: ID!, $status: String, $assigneeEmail: String) {
+    createTask(title: $title, projectId: $projectId, status: $status, assigneeEmail: $assigneeEmail) {
       task {
         id
         title
         status
+        assigneeEmail
       }
     }
   }
@@ -159,11 +160,13 @@ export const TaskBoard: React.FC = () => {
 
   const handleCreateTask = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!newTaskTitle.trim()) return;
     await createTask({
       variables: {
         title: newTaskTitle,
         projectId: projectId,
-        status: 'TODO'
+        status: 'TODO',
+        assigneeEmail: ''
       }
     });
     setNewTaskTitle('');
